@@ -26,7 +26,7 @@ jobs:
           pip install pyinstaller
 
       - name: Create build directory
-        run: mkdir -p src/dist/windows
+        run: mkdir -p dist/windows
 
       - name: Build with PyInstaller
         run: |
