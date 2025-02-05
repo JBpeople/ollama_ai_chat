@@ -1,4 +1,20 @@
-- name: PyInstaller Windows
-  uses: JackMcKew/pyinstaller-action-windows@main
-  with:
-    path: src
+name: Build App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: PyInstaller Windows
+        uses: JackMcKew/pyinstaller-action-windows@main
+        with:
+          path: src
