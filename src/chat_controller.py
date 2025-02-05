@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional
 from config_manager import ConfigManager
-from src.chat_api import ChatAPI
+from chat_api import ChatAPI
 
 class ChatController:
     """聊天控制器，处理业务逻辑"""

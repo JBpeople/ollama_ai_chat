@@ -3,9 +3,9 @@ import asyncio
 import threading
 import os
 from config_manager import IniConfigManager
-from src.chat_api import OllamaChatAPI
+from chat_api import OllamaChatAPI
 from chat_controller import ChatController
-from src.ui_components import ServerPanel, ChatPanel, TaskBarIcon
+from ui_components import ServerPanel, ChatPanel, TaskBarIcon
 from constant import CONFIG_FILE, DEFAULT_SERVER, DEFAULT_TIMEOUT
 
 
