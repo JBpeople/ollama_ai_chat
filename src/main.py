@@ -18,7 +18,7 @@ class ChatFrame(wx.Frame):
         self.SetMinSize((800, 600))  # 设置最小窗口尺寸
 
         # 设置图标
-        icon_path = os.path.join(os.path.dirname(__file__), "../icon.png")
+        icon_path = os.path.join(os.path.dirname(__file__), "../icon.ico")
         if os.path.exists(icon_path):
             self.icon = wx.Icon(icon_path)
             self.SetIcon(self.icon)
