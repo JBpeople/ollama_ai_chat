@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
@@ -18,3 +18,8 @@ jobs:
         uses: JackMcKew/pyinstaller-action-windows@main
         with:
           path: src
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: OllamaAIChat
+          path: src/dist/windows
