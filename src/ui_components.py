@@ -5,184 +5,68 @@ import wx.html2
 import markdown
 from typing import List, Dict, Optional, Callable
 
-class RoundedTextCtrl(wx.TextCtrl):
-    """圆角输入框"""
-    
-    def __init__(self, parent, size=(-1, -1), style=0):
-        super().__init__(parent, size=size, style=style)
-        self.SetBackgroundColour(wx.Colour(255, 255, 255))
-        
-        # 绑定绘制事件
-        self.Bind(wx.EVT_PAINT, self.on_paint)
-        self.Bind(wx.EVT_SIZE, lambda evt: self.Refresh())
-        
-        # 设置内边距
-        self.SetMargins((15, 8))  # 增加内边距
-    
-    def on_paint(self, event):
-        dc = wx.BufferedPaintDC(self)
-        gc = wx.GraphicsContext.Create(dc)
-        
-        # 清除背景
-        dc.SetBackground(wx.Brush(self.GetParent().GetBackgroundColour()))
-        dc.Clear()
-        
-        # 绘制圆角矩形
-        width, height = self.GetSize()
-        radius = min(height * 0.7, 20)  # 使用更大的圆角，但最大不超过20像素
-        
-        # 创建圆角矩形路径
-        path = gc.CreatePath()
-        path.AddRoundedRectangle(0, 0, width, height, radius)
-        
-        # 填充背景
-        gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
-        gc.SetPen(wx.Pen(wx.Colour(220, 220, 220), 1))  # 调整边框颜色
-        gc.DrawPath(path)
-        
-        # 绘制文本
-        text = self.GetValue()
-        if text:
-            font = self.GetFont()
-            gc.SetFont(font, wx.Colour(0, 0, 0))
-            
-            # 计算文本位置
-            margin_left, margin_top = self.GetMargins()
-            _, text_height = gc.GetTextExtent("Ay")
-            text_y = (height - text_height) / 2
-            
-            # 绘制文本
-            gc.DrawText(text, margin_left, text_y)
-        
-        event.Skip()
-
-class RoundedComboBox(wx.ComboBox):
-    """圆角下拉框"""
-    
-    def __init__(self, parent, choices=None, style=0):
-        super().__init__(parent, choices=choices or [], style=style)
-        self.SetBackgroundColour(wx.Colour(255, 255, 255))
-        
-        # 绑定绘制事件
-        self.Bind(wx.EVT_PAINT, self.on_paint)
-        self.Bind(wx.EVT_SIZE, lambda evt: self.Refresh())
-    
-    def on_paint(self, event):
-        dc = wx.BufferedPaintDC(self)
-        gc = wx.GraphicsContext.Create(dc)
-        
-        # 清除背景
-        dc.SetBackground(wx.Brush(self.GetParent().GetBackgroundColour()))
-        dc.Clear()
-        
-        # 绘制圆角矩形
-        width, height = self.GetSize()
-        radius = min(height * 0.7, 20)  # 使用更大的圆角，但最大不超过20像素
-        
-        # 创建圆角矩形路径
-        path = gc.CreatePath()
-        path.AddRoundedRectangle(0, 0, width, height, radius)
-        
-        # 填充背景
-        gc.SetBrush(wx.Brush(wx.Colour(255, 255, 255)))
-        gc.SetPen(wx.Pen(wx.Colour(220, 220, 220), 1))  # 调整边框颜色
-        gc.DrawPath(path)
-        
-        # 绘制文本
-        text = self.GetValue()
-        if text:
-            font = self.GetFont()
-            gc.SetFont(font, wx.Colour(0, 0, 0))
-            
-            # 计算文本位置
-            _, text_height = gc.GetTextExtent("Ay")
-            text_y = (height - text_height) / 2
-            
-            # 绘制文本
-            gc.DrawText(text, 15, text_y)  # 增加左边距
-        
-        # 绘制下拉箭头
-        arrow_size = 8  # 增大箭头大小
-        arrow_x = width - arrow_size * 2 - 8
-        arrow_y = (height - arrow_size) / 2
-        
-        arrow_path = gc.CreatePath()
-        arrow_path.MoveToPoint(arrow_x, arrow_y)
-        arrow_path.AddLineToPoint(arrow_x + arrow_size, arrow_y)
-        arrow_path.AddLineToPoint(arrow_x + arrow_size / 2, arrow_y + arrow_size)
-        arrow_path.CloseSubpath()
-        
-        gc.SetBrush(wx.Brush(wx.Colour(120, 120, 120)))  # 调整箭头颜色
-        gc.SetPen(wx.Pen(wx.Colour(120, 120, 120), 1))
-        gc.DrawPath(arrow_path)
-        
-        event.Skip()
 
 class ServerPanel(wx.Panel):
     """服务器连接面板"""
-    
+
     def __init__(self, parent, on_connect: Callable, on_favorite: Callable):
         super().__init__(parent)
         self.SetBackgroundColour(wx.Colour(255, 255, 255))
-        
+
         self.on_connect = on_connect
         self.on_favorite = on_favorite
         self.favorite_servers: List[str] = []
-        
+
         self._init_ui()
-    
+
     def _init_ui(self):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         # 服务器地址输入和选择
         ip_label = wx.StaticText(self, label="服务器地址:")
-        self.ip_input = RoundedComboBox(
-            self,
-            style=wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER,
-            choices=[]
-        )
+        self.ip_input = wx.ComboBox(self, style=wx.CB_DROPDOWN | wx.TE_PROCESS_ENTER, choices=[])
         self.ip_input.SetMinSize((250, -1))
-        
+
         # 绑定输入事件
         self.ip_input.Bind(wx.EVT_TEXT, self._on_address_change)
         self.ip_input.Bind(wx.EVT_COMBOBOX, self._on_address_change)
-        
+
         # 收藏按钮
         self.favorite_btn = wx.Button(self, label="☆", size=(30, -1))
         self.favorite_btn.SetToolTip("收藏当前地址")
         self.favorite_btn.Bind(wx.EVT_BUTTON, self._on_favorite_click)
-        
+
         # 连接按钮
         self.connect_btn = wx.Button(self, label="连接")
         self.connect_btn.Bind(wx.EVT_BUTTON, self._on_connect_click)
-        
+
         # 模型选择
         self.model_choice = wx.Choice(self, choices=[])
         self.model_choice.Disable()
-        
+
         # 布局
         sizer.Add(ip_label, 0, wx.ALL | wx.CENTER, 5)
         sizer.Add(self.ip_input, 1, wx.ALL | wx.EXPAND, 5)
         sizer.Add(self.favorite_btn, 0, wx.ALL | wx.CENTER, 5)
         sizer.Add(self.connect_btn, 0, wx.ALL | wx.CENTER, 5)
         sizer.Add(self.model_choice, 1, wx.ALL | wx.EXPAND, 5)
-        
+
         self.SetSizer(sizer)
-    
+
     def _on_connect_click(self, event):
         self.on_connect(self.ip_input.GetValue())
-    
+
     def _on_favorite_click(self, event):
         self.on_favorite(self.ip_input.GetValue())
         event.Skip()
-    
+
     def _on_address_change(self, event):
         """处理地址变化事件"""
         current_address = self.ip_input.GetValue()
         is_favorite = current_address in self.favorite_servers
         self._do_update_favorite_button(is_favorite)
         event.Skip()
-    
+
     def update_favorites(self, favorites: List[str]):
         """更新收藏列表"""
         self.favorite_servers = favorites
@@ -192,13 +76,13 @@ class ServerPanel(wx.Panel):
             self.ip_input.AppendItems(favorites)
         self.ip_input.SetValue(current_url)
         self._do_update_favorite_button(current_url in favorites)
-    
+
     def _do_update_favorite_button(self, is_favorite: bool):
         """实际执行更新收藏按钮的操作"""
         self.favorite_btn.SetLabel("★" if is_favorite else "☆")
         self.favorite_btn.SetToolTip("取消收藏" if is_favorite else "收藏当前地址")
         self.favorite_btn.Refresh()
-    
+
     def set_connecting_state(self):
         """设置连接中状态"""
         self.connect_btn.SetLabel("连接中...")
@@ -206,7 +90,7 @@ class ServerPanel(wx.Panel):
         self.ip_input.Disable()
         self.model_choice.Disable()
         self.favorite_btn.Disable()
-    
+
     def set_connection_state(self, is_connected: bool):
         """设置连接状态"""
         self.connect_btn.SetLabel("断开" if is_connected else "连接")
@@ -214,64 +98,61 @@ class ServerPanel(wx.Panel):
         self.ip_input.Enable(not is_connected)
         self.model_choice.Enable(is_connected)
         self.favorite_btn.Enable()
-    
+
     def update_models(self, models: List[Dict]):
         """更新模型列表"""
         self.model_choice.Clear()
         self.model_choice.AppendItems([model["name"] for model in models])
         if models:
             self.model_choice.SetSelection(0)
-    
+
     def get_current_model(self) -> Optional[str]:
         """获取当前选中的模型"""
         index = self.model_choice.GetSelection()
         return self.model_choice.GetString(index) if index != wx.NOT_FOUND else None
 
+
 class ChatPanel(wx.Panel):
     """聊天面板"""
-    
+
     def __init__(self, parent, on_send: Callable):
         super().__init__(parent)
         self.on_send = on_send
         self._init_ui()
-    
+
     def _init_ui(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
-        
+
         # 聊天显示区域
         self.web_view = wx.html2.WebView.New(self)
         self.web_view.SetBackgroundColour(wx.Colour(255, 255, 255))
-        
+
         # 输入区域
         input_panel = wx.Panel(self)
         input_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        
-        self.message_input = RoundedTextCtrl(
-            input_panel,
-            style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER,
-            size=(-1, 60)
-        )
+
+        self.message_input = wx.TextCtrl(input_panel, style=wx.TE_MULTILINE | wx.TE_PROCESS_ENTER, size=(-1, 60))
         self.message_input.SetMaxSize((-1, 60))
         self.message_input.Bind(wx.EVT_TEXT_ENTER, self._on_send)
-        
+
         self.send_btn = wx.Button(input_panel, label="发送")
         self.send_btn.Bind(wx.EVT_BUTTON, self._on_send)
         self.send_btn.Disable()
-        
+
         input_sizer.Add(self.message_input, 1, wx.ALL | wx.EXPAND, 5)
         input_sizer.Add(self.send_btn, 0, wx.ALL | wx.CENTER, 5)
         input_panel.SetSizer(input_sizer)
-        
+
         sizer.Add(self.web_view, 1, wx.ALL | wx.EXPAND, 5)
         sizer.Add(input_panel, 0, wx.ALL | wx.EXPAND, 5)
-        
+
         self.SetSizer(sizer)
-    
+
     def _on_send(self, event):
         message = self.message_input.GetValue().strip()
         if message:
             self.on_send(message)
-    
+
     def set_send_state(self, enabled: bool, is_sending: bool = False):
         """设置发送状态"""
         self.send_btn.Enable(enabled)
@@ -279,16 +160,16 @@ class ChatPanel(wx.Panel):
         self.message_input.Enable(enabled)
         if enabled and not is_sending:
             self.message_input.SetFocus()
-    
+
     def clear_input(self):
         """清空输入框"""
         self.message_input.SetValue("")
-    
+
     def update_chat_display(self, messages: List[Dict[str, str]]):
         """更新聊天显示"""
         html_content = self._generate_chat_html(messages)
         self.web_view.SetPage(html_content, "")
-    
+
     def _generate_chat_html(self, messages: List[Dict[str, str]]) -> str:
         """生成聊天HTML内容"""
         html_template = """
@@ -444,11 +325,11 @@ class ChatPanel(wx.Panel):
         </head>
         <body onload="scrollToBottom()">
         """
-        
+
         for msg in messages:
             role = msg["role"]
             content = msg["content"]
-            
+
             if role == "user":
                 html_content = f"""
                 <div class="message user-message">
@@ -476,48 +357,38 @@ class ChatPanel(wx.Panel):
                 </div>
                 """
             html_template += html_content
-        
+
         html_template += """
         </body>
         </html>
         """
-        
-        return html_template 
+
+        return html_template
+
 
 class TaskBarIcon(wx.adv.TaskBarIcon):
     """系统托盘图标"""
-    
+
     def __init__(self, frame):
         super().__init__()
         self.frame = frame
-        self.SetIcon(
-            self.frame.icon,
-            "Ollama AI\n点击显示/隐藏窗口\n右键查看菜单"
-        )
+        # self.SetIcon(self.frame.icon, "Ollama AI\n点击显示/隐藏窗口\n右键查看菜单")
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DOWN, self.on_left_down)
-    
+
     def CreatePopupMenu(self):
         """创建右键菜单"""
         menu = wx.Menu()
-        
+
         show_item = menu.Append(wx.ID_ANY, "显示" if not self.frame.IsShown() else "隐藏")
-        self.Bind(
-            wx.EVT_MENU,
-            self.on_show,
-            show_item
-        )
-        
+        self.Bind(wx.EVT_MENU, self.on_show, show_item)
+
         menu.AppendSeparator()
-        
+
         exit_item = menu.Append(wx.ID_ANY, "退出")
-        self.Bind(
-            wx.EVT_MENU,
-            self.on_exit,
-            exit_item
-        )
-        
+        self.Bind(wx.EVT_MENU, self.on_exit, exit_item)
+
         return menu
-    
+
     def on_left_down(self, event):
         """处理左键点击事件"""
         if self.frame.IsShown():
@@ -526,7 +397,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             self.frame.Show()
             self.frame.Restore()
             self.frame.Raise()
-    
+
     def on_show(self, event):
         """处理显示/隐藏菜单项"""
         if self.frame.IsShown():
@@ -535,8 +406,8 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
             self.frame.Show()
             self.frame.Restore()
             self.frame.Raise()
-    
+
     def on_exit(self, event):
         """处理退出菜单项"""
         self.frame._do_exit()
-        self.frame.Close(True) 
+        self.frame.Close(True)

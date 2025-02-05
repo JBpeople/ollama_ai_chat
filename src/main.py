@@ -2,11 +2,22 @@ import wx
 import asyncio
 import threading
 import os
+import sys
 from config_manager import IniConfigManager
 from chat_api import OllamaChatAPI
 from chat_controller import ChatController
 from ui_components import ServerPanel, ChatPanel, TaskBarIcon
 from constant import CONFIG_FILE, DEFAULT_SERVER, DEFAULT_TIMEOUT
+
+
+def resource_path(relative_path):
+    """获取资源文件的绝对路径"""
+    try:
+        # PyInstaller创建临时文件夹，将路径存储在_MEIPASS中
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 
 class ChatFrame(wx.Frame):
@@ -18,12 +29,10 @@ class ChatFrame(wx.Frame):
         self.SetMinSize((800, 600))  # 设置最小窗口尺寸
 
         # 设置图标
-        icon_path = os.path.join(os.path.dirname(__file__), "../icon.ico")
+        icon_path = resource_path("icon.ico")
         if os.path.exists(icon_path):
             self.icon = wx.Icon(icon_path)
             self.SetIcon(self.icon)
-        else:
-            print(f"图标文件不存在: {icon_path}")
 
         # 创建任务栏图标
         self.taskbar_icon = TaskBarIcon(self)

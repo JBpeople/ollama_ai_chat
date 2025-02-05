@@ -30,7 +30,7 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --noconfirm --onefile --windowed --icon=./icon.ico --name OllamaAIChat src/main.py
+          pyinstaller --noconfirm --onefile --windowed --icon=icon.ico --add-data "icon.ico;." --name OllamaAIChat src/main.py
 
       - name: Move executable
         run: |
