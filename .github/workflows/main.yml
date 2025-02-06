@@ -70,7 +70,7 @@ jobs:
 
       - name: Move application
         run: |
-          mv dist/OllamaAIChat dist/macos/
+          mv dist/OllamaAIChat.app dist/macos/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
