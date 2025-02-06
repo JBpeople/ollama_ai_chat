@@ -3,25 +3,12 @@ name: Build and Release
 on:
   push:
     branches: [ main ]
-    tags:
-      - 'v*'  # 匹配所有以v开头的tag
   pull_request:
     branches: [ main ]
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest]
-        include:
-          - os: windows-latest
-            output_name: OllamaAIChat.exe
-            dist_dir: windows
-          - os: macos-latest 
-            output_name: OllamaAIChat
-            dist_dir: macos
-            
-    runs-on: ${{ matrix.os }}
+  windows-build:
+    runs-on: windows-latest
     
     steps:
       - name: Checkout code
@@ -39,25 +26,55 @@ jobs:
           pip install pyinstaller
 
       - name: Create build directory
-        run: mkdir -p dist/${{ matrix.dist_dir }}
+        run: mkdir -p dist/windows
 
       - name: Build with PyInstaller
         run: |
           pyinstaller --noconfirm --onefile --windowed --icon=./icon.ico --add-data "icon.ico;." --name OllamaAIChat src/main.py
 
-      - name: Move executable (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Move executable
         run: |
-          move dist\OllamaAIChat.exe dist\${{ matrix.dist_dir }}\
-
-      - name: Move executable (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          mv dist/OllamaAIChat dist/${{ matrix.dist_dir }}/
+          move dist/OllamaAIChat.exe dist/windows/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OllamaAIChat-${{ matrix.dist_dir }}
-          path: dist/${{ matrix.dist_dir }}
+          name: OllamaAIChat-Windows
+          path: dist/windows
+          retention-days: 5
+
+  macos-build:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Create build directory
+        run: mkdir -p dist/macos
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller --noconfirm --onefile --windowed --icon=./icon.ico --add-data "icon.ico:." --name OllamaAIChat src/main.py
+
+      - name: Move application
+        run: |
+          mv dist/OllamaAIChat dist/macos/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OllamaAIChat-macOS
+          path: dist/macos
           retention-days: 5
