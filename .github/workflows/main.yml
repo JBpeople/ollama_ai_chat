@@ -66,11 +66,12 @@ jobs:
 
       - name: Build with PyInstaller
         run: |
-          pyinstaller --noconfirm --onefile --windowed --icon=./icon.icns --add-data "icon.icns:." --name OllamaAIChat src/main.py
+          pyinstaller --noconfirm --onefile --windowed --icon=./icon.icns --add-data "icon.icns:." --name OllamaAIChat src/main.py --collect-all certifi
 
       - name: Move application
         run: |
           mv dist/OllamaAIChat.app dist/macos/
+          chmod +x dist/macos/OllamaAIChat.app/Contents/MacOS/OllamaAIChat
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
