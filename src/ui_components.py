@@ -3,7 +3,19 @@ import wx
 import wx.adv
 import wx.html2
 import markdown
+import os
+import sys
 from typing import List, Dict, Optional, Callable
+
+
+def resource_path(relative_path):
+    """获取资源文件的绝对路径"""
+    try:
+        # PyInstaller创建临时文件夹，将路径存储在_MEIPASS中
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 
 class ServerPanel(wx.Panel):
@@ -372,7 +384,13 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
     def __init__(self, frame):
         super().__init__()
         self.frame = frame
-        # self.SetIcon(self.frame.icon, "Ollama AI\n点击显示/隐藏窗口\n右键查看菜单")
+
+        # 设置图标
+        icon_path = resource_path("icon.ico")
+        if os.path.exists(icon_path):
+            self.SetIcon(wx.Icon(icon_path), "Ollama AI")
+
+        # 绑定事件
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DOWN, self.on_left_down)
 
     def CreatePopupMenu(self):
