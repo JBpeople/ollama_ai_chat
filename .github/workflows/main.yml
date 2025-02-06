@@ -10,7 +10,18 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+        include:
+          - os: windows-latest
+            output_name: OllamaAIChat.exe
+            dist_dir: windows
+          - os: macos-latest 
+            output_name: OllamaAIChat
+            dist_dir: macos
+            
+    runs-on: ${{ matrix.os }}
     
     steps:
       - name: Checkout code
@@ -28,47 +39,25 @@ jobs:
           pip install pyinstaller
 
       - name: Create build directory
-        run: mkdir -p dist/windows
+        run: mkdir -p dist/${{ matrix.dist_dir }}
 
       - name: Build with PyInstaller
         run: |
           pyinstaller --noconfirm --onefile --windowed --icon=./icon.ico --add-data "icon.ico;." --name OllamaAIChat src/main.py
 
-      - name: Move executable
+      - name: Move executable (Windows)
+        if: matrix.os == 'windows-latest'
         run: |
-          move dist/OllamaAIChat.exe dist/windows/
+          move dist\OllamaAIChat.exe dist\${{ matrix.dist_dir }}\
+
+      - name: Move executable (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          mv dist/OllamaAIChat dist/${{ matrix.dist_dir }}/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OllamaAIChat-Windows
-          path: dist/windows
+          name: OllamaAIChat-${{ matrix.dist_dir }}
+          path: dist/${{ matrix.dist_dir }}
           retention-days: 5
-
-      - name: Generate Release Notes
-        if: startsWith(github.ref, 'refs/tags/')
-        id: release_notes
-        run: |
-          $version = "${{ github.ref_name }}"
-          $changelog = Get-Content CHANGELOG.md -Raw
-          $pattern = "## \[$version\].*?(?=## \[|$)"
-          $match = [regex]::Match($changelog, $pattern, [System.Text.RegularExpressions.RegexOptions]::Singleline)
-          if ($match.Success) {
-              $notes = $match.Value
-          } else {
-              $notes = "## OllamaAIChat $version`n`n### 更新内容`n`n- 自动构建的Windows可执行文件`n- 运行环境：Windows 10/11"
-          }
-          $notes | Out-File release_notes.txt -Encoding UTF8
-
-      - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
-        with:
-          name: Release ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-          files: |
-            dist/windows/OllamaAIChat.exe
-          body_path: release_notes.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
