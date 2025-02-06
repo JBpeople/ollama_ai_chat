@@ -1,8 +1,10 @@
-name: Build Windows App
+name: Build and Release
 
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'v*'  # 匹配所有以v开头的tag
   pull_request:
     branches: [ main ]
 
@@ -42,3 +44,30 @@ jobs:
           name: OllamaAIChat-Windows
           path: dist/windows
           retention-days: 5
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            dist/windows/OllamaAIChat.exe
+          body: |
+            ## OllamaAIChat ${{ github.ref_name }}
+            
+            ### 更新内容
+            
+            - 自动构建的Windows可执行文件
+            - 运行环境：Windows 10/11
+            
+            ### 使用说明
+            
+            1. 下载 OllamaAIChat.exe
+            2. 确保已安装并运行 Ollama 服务
+            3. 双击运行程序
+            4. 输入服务器地址（默认 localhost:11434）
+            5. 开始使用
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
