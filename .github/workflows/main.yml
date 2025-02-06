@@ -3,6 +3,8 @@ name: Build and Release
 on:
   push:
     branches: [ main ]
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
   pull_request:
     branches: [ main ]
 
@@ -79,3 +81,46 @@ jobs:
           name: OllamaAIChat-macOS
           path: dist/macos
           retention-days: 5
+
+  create-release:
+    needs: [windows-build, macos-build]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Get version
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: OllamaAIChat-Windows
+          path: dist/windows
+          
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: OllamaAIChat-macOS
+          path: dist/macos
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            Release ${{ steps.get_version.outputs.VERSION }}
+          files: |
+            dist/windows/OllamaAIChat.exe
+            dist/macos/OllamaAIChat.app
+          draft: false
+          prerelease: false
