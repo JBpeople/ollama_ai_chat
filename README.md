@@ -2,66 +2,71 @@
 
 基于Ollama服务的智能聊天应用，提供简洁优雅的聊天界面和丰富的模型支持。
 
+![image](./static/screenshot.png)
+
 ## 功能特点
 
 - 🚀 支持多种Ollama模型
 - 💬 简洁直观的聊天界面
 - 🔄 实时对话响应
-- 📝 聊天记录保存
-- 🎨 自定义主题设置
-- ⚙️ 灵活的模型参数配置
 
 ## 安装说明
 
 ### 前置要求
 
 - 已安装 Ollama 服务
-- Node.js 16.0 或更高版本
-- npm 或 yarn 包管理器
+- Python 3.10 或更高版本
 
 ### 安装步骤
 
 1. 克隆项目
 ```bash
-git clone https://github.com/yourusername/ollama_ai.git
+git clone https://github.com/jbpeople/ollama_ai_chat.git
 cd ollama_ai
 ```
 
 2. 安装依赖
 ```bash
-npm install
-# 或
-yarn install
+pip install -r requirements.txt
 ```
 
 3. 启动应用
 ```bash
-npm start
-# 或
-yarn start
+python src/main.py
 ```
 
 ## 使用方法
 
 1. 确保Ollama服务已在本地运行
-2. 启动应用后，在浏览器中访问应用界面
+2. 启动应用后，服务器地址输入框输入 `http://localhost:11434`
 3. 选择想要使用的AI模型
 4. 开始对话交互
 
-## 技术栈
+### 配置文件说明
 
-- 前端框架：[待定]
-- 后端服务：[待定]
-- AI服务：Ollama
-- 数据存储：[待定]
+- `config.ini` 配置文件
 
-## 开发计划
+```ini
+[Server]
+# 服务器地址
+url = localhost:11434
 
-- [ ] 多模型切换支持
-- [ ] 历史对话管理
-- [ ] 主题定制功能
-- [ ] 导出对话记录
-- [ ] 快捷指令配置
+[Chat]
+# 聊天超时时间
+timeout = 60.0
+
+[Favorites]
+# 收藏的服务器列表
+servers = ["localhost:11434"]
+
+[Window]
+# 关闭窗口时的操作
+close_action = ask
+```
+
+
+
+
 
 ## 贡献指南
 
