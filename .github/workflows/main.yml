@@ -38,6 +38,19 @@ jobs:
         run: |
           move dist/OllamaAIChat.exe dist/windows/
 
+      - name: Get version for Windows
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: get_win_version
+        shell: bash
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Rename Windows executable
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          Rename-Item dist/windows/OllamaAIChat.exe OllamaAIChat-Windows-${{ steps.get_win_version.outputs.VERSION }}.exe
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -62,6 +75,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
+          brew install create-dmg
 
       - name: Create build directory
         run: mkdir -p dist/macos
@@ -75,11 +89,26 @@ jobs:
           mv dist/OllamaAIChat.app dist/macos/
           chmod +x dist/macos/OllamaAIChat.app/Contents/MacOS/OllamaAIChat
 
+      - name: Create DMG
+        run: |
+          create-dmg \
+            --volname "OllamaAIChat" \
+            --volicon "icon.icns" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "OllamaAIChat.app" 175 190 \
+            --hide-extension "OllamaAIChat.app" \
+            --app-drop-link 425 190 \
+            --no-internet-enable \
+            "dist/OllamaAIChat.dmg" \
+            "dist/macos/OllamaAIChat.app"
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: OllamaAIChat-macOS
-          path: dist/macos
+          path: dist
           retention-days: 5
 
   create-release:
@@ -110,19 +139,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: OllamaAIChat-macOS
-          path: dist/macos
+          path: dist
           
-      - name: Package Windows App
+      - name: Rename macOS DMG
         run: |
-          cd dist/windows
-          zip -r ../OllamaAIChat-Windows-${{ steps.get_version.outputs.VERSION }}.zip OllamaAIChat.exe
-          cd ../..
-          
-      - name: Package macOS App
-        run: |
-          cd dist/macos
-          zip -r ../OllamaAIChat-macOS-${{ steps.get_version.outputs.VERSION }}.zip OllamaAIChat.app
-          cd ../..
+          mv dist/OllamaAIChat.dmg dist/OllamaAIChat-macOS-${{ steps.get_version.outputs.VERSION }}.dmg
           
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -131,12 +152,8 @@ jobs:
           name: Release ${{ steps.get_version.outputs.VERSION }}
           body: |
             Release ${{ steps.get_version.outputs.VERSION }}
-            
-            ### 下载
-            - Windows: OllamaAIChat-Windows.zip (解压后双击 OllamaAIChat.exe 运行)
-            - macOS: OllamaAIChat-macOS.zip (解压后双击 OllamaAIChat.app 运行)
           files: |
-            dist/OllamaAIChat-Windows-${{ steps.get_version.outputs.VERSION }}.zip
-            dist/OllamaAIChat-macOS-${{ steps.get_version.outputs.VERSION }}.zip
+            dist/windows/OllamaAIChat-Windows-${{ steps.get_version.outputs.VERSION }}.exe
+            dist/OllamaAIChat-macOS-${{ steps.get_version.outputs.VERSION }}.dmg
           draft: false
           prerelease: false
