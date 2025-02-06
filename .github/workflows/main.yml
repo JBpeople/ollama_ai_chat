@@ -112,6 +112,18 @@ jobs:
           name: OllamaAIChat-macOS
           path: dist/macos
           
+      - name: Package Windows App
+        run: |
+          cd dist/windows
+          zip -r ../OllamaAIChat-Windows-${{ steps.get_version.outputs.VERSION }}.zip OllamaAIChat.exe
+          cd ../..
+          
+      - name: Package macOS App
+        run: |
+          cd dist/macos
+          zip -r ../OllamaAIChat-macOS-${{ steps.get_version.outputs.VERSION }}.zip OllamaAIChat.app
+          cd ../..
+          
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
@@ -119,8 +131,12 @@ jobs:
           name: Release ${{ steps.get_version.outputs.VERSION }}
           body: |
             Release ${{ steps.get_version.outputs.VERSION }}
+            
+            ### 下载
+            - Windows: OllamaAIChat-Windows.zip (解压后双击 OllamaAIChat.exe 运行)
+            - macOS: OllamaAIChat-macOS.zip (解压后双击 OllamaAIChat.app 运行)
           files: |
-            dist/windows/OllamaAIChat.exe
-            dist/macos/OllamaAIChat.app
+            dist/OllamaAIChat-Windows-${{ steps.get_version.outputs.VERSION }}.zip
+            dist/OllamaAIChat-macOS-${{ steps.get_version.outputs.VERSION }}.zip
           draft: false
           prerelease: false
